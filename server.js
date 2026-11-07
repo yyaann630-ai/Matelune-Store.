@@ -18,9 +18,9 @@ const setting = k => get('SELECT value FROM settings WHERE key=?', k)?.value;
 const setS = (k, v) => run('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', k, v);
 const bump = () => setS('v', String(Date.now()));
 const IMG = /^data:image\/(png|jpe?g|webp);base64,/, IMGK = ['logo', 'banner', 'qris'];
-const dayKey = ts => { const d = new Date(ts); return ${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}; };
+const dayKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const FUL = { antar: 'Antar', ambil: 'Ambil', cod: 'COD' };
-const addIn = o => run("INSERT INTO transactions(type,amount,note,created_at,order_id) VALUES('in',?,?,?,?)", o.total, Pesanan #${o.id} - ${o.customer} (${o.method === 'cash' ? 'Tunai' : 'QRIS'}, ${FUL[o.fulfil || 'antar']}), Date.now(), o.id);
+const addIn = o => run("INSERT INTO transactions(type,amount,note,created_at,order_id) VALUES('in',?,?,?,?)", o.total, `Pesanan #${o.id} - ${o.customer} (${o.method === 'cash' ? 'Tunai' : 'QRIS'}, ${FUL[o.fulfil || 'antar']})`, Date.now(), o.id);
 const h = s => crypto.createHash('sha256').update(String(s)).digest();
 const lanIP = () => { for (const l of Object.values(os.networkInterfaces())) for (const i of l || []) if (i.family === 'IPv4' && !i.internal && !i.address.startsWith('169.254')) return i.address; };
 const err = (status, error, extra) => Object.assign(new Error(error), { status, extra });
@@ -159,10 +159,10 @@ http.createServer(async (req, res) => {
       if (r.m !== req.method) continue; const m = p.match(r.re); if (!m) continue;
       if (r.admin && !sessions.has(sid)) throw err(401, 'Belum login');
       const c = { req, body, p: m.groups || {}, sid }, out = r.fn(c), hd = {};
-      if (c.setCookie !== undefined) hd['Set-Cookie'] = sid=${c.setCookie}; Path=/; HttpOnly; SameSite=Lax${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}${c.setCookie ? '' : '; Max-Age=0'};
+      if (c.setCookie !== undefined) hd['Set-Cookie'] = `sid=${c.setCookie}; Path=/; HttpOnly; SameSite=Lax${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}${c.setCookie ? '' : '; Max-Age=0'}`;
       if (out?.cache) hd['Cache-Control'] = out.cache;
       return out?.raw ? send(200, out.raw, out.type, hd) : send(200, JSON.stringify(out), 'application/json', hd);
     }
     throw err(404, 'API tidak ada');
   } catch (e) { res.writeHead(e.status || 500, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: e.status ? e.message : 'Server error', ...e.extra })); if (!e.status) console.error(e); }
-}).listen(PORT, () => console.log(\n♡ Toko berjalan\n   Pelanggan: http://localhost:${PORT}\n   Admin    : http://localhost:${PORT}/admin  (password: ${PASS})\n   Alamat HP (satu WiFi): http://${lanIP() || 'IP-laptop'}:${PORT}\n));    
+}).listen(PORT, () => console.log(`\n♡ Toko berjalan\n   Pelanggan: http://localhost:${PORT}\n   Admin    : http://localhost:${PORT}/admin  (password: ${PASS})\n   Alamat HP (satu WiFi): http://${lanIP() || 'IP-laptop'}:${PORT}\n`));
